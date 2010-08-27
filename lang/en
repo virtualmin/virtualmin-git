@@ -1,0 +1,22 @@
+feat_name=Git repositories
+feat_losing=Git access via the website will be disabled
+feat_disname=subversion repositories
+feat_label=Allow Git repositories?
+feat_edepweb=Git cannot be enabled unless a website is
+feat_echeck=The Git administration command $1 is not installed
+feat_backup=Backing up Git repositories and configuration files ..
+feat_tar=.. failed to TAR up repositories : $1
+feat_nopfile=.. users file not found!
+feat_nocfile=.. configuration file not found!
+feat_backup_name=Git repositories and configuration files
+feat_untar=.. failed to un-TAR repositories : $1
+feat_copypfile2=.. failed to copy users file : $1
+feat_copycfile2=.. failed to copy config file : $1
+feat_restore=Restoring Git repositories and configuration files ..
+feat_evalidatefile=SVN users file $1 does not exist
+feat_evalidateconf=SVN configuration file $1 does not exist
+feat_evalidateloc=Missing SVN Location from Apache configuration
+
+setup_dav=Adding Git directives to website configuration ..
+setup_gituser=Adding Git account for server administrator
+
