@@ -13,10 +13,64 @@ feat_untar=.. failed to un-TAR repositories : $1
 feat_copypfile2=.. failed to copy users file : $1
 feat_copycfile2=.. failed to copy config file : $1
 feat_restore=Restoring Git repositories and configuration files ..
-feat_evalidatefile=SVN users file $1 does not exist
-feat_evalidateconf=SVN configuration file $1 does not exist
-feat_evalidateloc=Missing SVN Location from Apache configuration
+feat_evalidatefile=Git users file $1 does not exist
+feat_evalidateconf=Git configuration file $1 does not exist
+feat_evalidateloc=Missing Git Location from Apache configuration
 
-setup_dav=Adding Git directives to website configuration ..
+setup_git=Adding Git directives to website configuration ..
 setup_gituser=Adding Git account for server administrator
 
+save_git=Updating Git domain in website configuration ..
+save_gitpass=Updating Git password for administration user ..
+
+delete_git=Removing Git directives from website configuration ..
+
+index_title=Git Repositories
+index_none=No Git repositories have been defined in any of your servers yet.
+index_rep=Repository name
+index_dom=Under server
+index_dir=Directory
+index_action=Actions
+index_header=Create Git Repository
+index_edoms=You do not have access to any Virtualmin servers.
+index_edoms2=No Virtualmin servers have been created yet.
+index_edoms3=No Virtualmin servers that you have access to have the Git feature enabled.
+index_eplugin=The Git plugin is not enabled on Virtualmin's <a href='$1'>plugins page</a>. It must be selected before you can use this module.
+index_eplugin2=The Git plugin is not enabled in Virtualmin.
+index_type=Repository type
+index_ro=Allow anonymous read access?
+index_max=You are not allowed to add any more Git repositories.
+index_canadd0=Based on your limits, $1 additional repositories can be added.
+index_email=Email Notifications
+index_perms=Fix Permissions
+index_anon=Anonymous Access
+index_dump=Dump
+index_load=Load
+index_return=repositories list
+index_eshow=Virtual server to show does not exist!
+index_grant=Grant access to users
+index_allusers=Users in domain
+index_grantusers=Users with access
+
+add_err=Failed to create repository
+add_erep=Missing or invalid repository name
+add_edom=You do not have acces to that domain
+
+delete_erep=Repository does not exist
+delete_emode=No button clicked!
+delete_title=Delete Repository
+delete_rusure=Are you sure you want to delete the Git repository $1? $2 of source code and other files will be deleted.
+delete_ok=Yes, Delete It
+
+links_link=Git Repositories
+
+limits_max=Maximum number of Git repositories
+limits_emax=Missing or invalid maximum number of Git repositories
+
+tmpl_limit=Default limit on number of Git repositories
+tmpl_unlimit=Unlimited
+tmpl_atmost=At most
+tmpl_elimit=Missing or invalid limit on number of Git repositories
+
+log_add_repo=Created repository $1 in $2
+log_delete_repo=Deleted repository $1 in $2

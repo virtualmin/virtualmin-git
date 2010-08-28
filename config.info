@@ -1,1 +1,2 @@
 git=Full path to git command,0
+passfile=Password file under home directory,3,Default (<tt>etc/git.basic.passwd</tt>)

@@ -87,11 +87,12 @@ if (!$any) {
 		$virtual_server::text{'delete_noapache'});
 	}
 else {
-	# Create needed directories ~/etc/ and ~/git
+	# Create needed directories ~/etc/ and ~/public_html/git
 	local $passwd_file = &passwd_file($d);
-	if (!-d "$d->{'home'}/git") {
+	local $phd = &virtual_server::public_html_dir($d);
+	if (!-d "$phd/git") {
 		&virtual_server::make_dir_as_domain_user(
-			$d, "$d->{'home'}/git", 02755);
+			$d, "$phd/git", 02755);
 		}
 	if (!-d "$d->{'home'}/etc") {
 		&virtual_server::make_dir_as_domain_user(
@@ -160,7 +161,6 @@ if ($virt) {
 		&find_git_lines($lref, $virt->{'line'}, $virt->{'eline'});
 	local @lines;
 	local $passwd_file = &passwd_file($d);
-	local $conf_file = &conf_file($d);
 	local @norewrite;
 	if ($apache::httpd_modules{'mod_rewrite'}) {
 		@norewrite = ( "RewriteEngine off" );
@@ -185,6 +185,28 @@ if ($virt) {
 else {
 	return 0;
 	}
+}
+
+# remove_git_directives(&domain, port)
+# Delete Apache directives for the /git location
+sub remove_git_directives
+{
+local ($d, $port) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+if ($virt) {
+        local $lref = &read_file_lines($virt->{'file'});
+        local ($locstart, $locend) =
+                &find_git_lines($lref, $virt->{'line'}, $virt->{'eline'});
+        if ($locstart) {
+                splice(@$lref, $locstart, $locend-$locstart+1);
+                }
+        &flush_file_lines();
+        undef(@apache::get_config_cache);
+        return 1;
+        }
+else {
+        return 0;
+        }
 }
 
 # find_git_lines(&directives, start, end)
@@ -220,7 +242,25 @@ sub feature_delete
 local ($d) = @_;
 &$virtual_server::first_print($text{'delete_git'});
 &virtual_server::obtain_lock_web($d);
+local $any;
+$any++ if (&remove_git_directives($d, $d->{'web_port'}));
+$any++ if ($d->{'ssl'} &&
+           &remove_git_directives($d, $d->{'web_sslport'}));
 &virtual_server::release_lock_web($d);
+if (!$any) {
+	&$virtual_server::second_print(
+		$virtual_server::text{'delete_noapache'});
+	}
+else {
+	&$virtual_server::second_print($virtual_server::text{'setup_done'});
+	&virtual_server::register_post_action(\&virtual_server::restart_apache);
+
+	# Remove negative proxy for /git
+	if (defined(&virtual_server::delete_noproxy_path)) {
+		&virtual_server::delete_noproxy_path(
+			$d, { }, undef, { 'path' => '/git/' });
+		}
+	}
 }
 
 # feature_webmin(&domain)
