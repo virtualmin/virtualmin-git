@@ -321,23 +321,66 @@ return ( { 'mod' => $module_name,
 }
 
 # feature_backup(&domain, file, &opts, &all-opts)
-# XXX
+# Backup all Git repositories and the users file
 sub feature_backup
 {
 local ($d, $file, $opts) = @_;
 &$virtual_server::first_print($text{'feat_backup'});
-# XXX
+
+# Copy actual repositories
+local $phd = &virtual_server::public_html_dir($d);
+local $tar = &virtual_server::get_tar_command();
+local $out = &backquote_command("cd ".quotemeta("$phd/git")." && ".
+                                "$tar cf ".quotemeta($file)." . 2>&1");
+if ($?) {
+        &$virtual_server::second_print(&text('feat_tar', "<pre>$out</pre>"));
+        return 0;
+        }
+
+# Copy users file
+local $pfile = &passwd_file($_[0]);
+if (!-r $pfile) {
+        &$virtual_server::second_print($text{'feat_nopfile'});
+        return 0;
+        }
+&copy_source_dest($pfile, $file."_users");
+
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 return 1;
 }
 
 # feature_restore(&domain, file, &opts, &all-opts)
-# XXX
+# Restore Git repositories and the users file
 sub feature_restore
 {
 local ($d, $file, $opts) = @_;
 &$virtual_server::first_print($text{'feat_restore'});
-# XXX
+
+# Extract tar file of repositories (deleting old ones first)
+local $phd = &virtual_server::public_html_dir($d);
+local $tar = &virtual_server::get_tar_command();
+&execute_command("rm -rf ".quotemeta("$phd/git")."/*");
+local ($out, $ex) = &virtual_server::run_as_domain_user($d,
+        "cd ".quotemeta("$phd/git")." && $tar xf ".quotemeta($file)." 2>&1");
+if ($ex) {
+        &$virtual_server::second_print(&text('feat_untar', "<pre>$out</pre>"));
+        return 0;
+        }
+
+# Fix repo permissions
+foreach my $rep (&list_reps($d)) {
+	&set_rep_permissions($d, $rep);
+	}
+
+# Copy users file
+local $pfile = &passwd_file($d);
+local ($ok, $out) = &virtual_server::copy_source_dest_as_domain_user(
+                $d, $file."_users", $pfile);
+if (!$ok) {
+        &$virtual_server::second_print(&text('feat_copypfile2', $out));
+        return 0;
+        }
+
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 return 1;
 }
@@ -353,7 +396,16 @@ return $text{'feat_backup_name'};
 sub feature_validate
 {
 local ($d) = @_;
-# XXX
+local $passwd_file = &passwd_file($d);
+-r $passwd_file || return &text('feat_evalidatefile', "<tt>$passwd_file</tt>");
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+$virt || return &virtual_server::text('validate_eweb', $d->{'dom'});
+local $lref = &read_file_lines($virt->{'file'});
+local ($locstart, $locend) =
+        &find_git_lines($lref, $virt->{'line'}, $virt->{'eline'});
+$locstart || return &text('feat_evalidateloc');
+local $phd = &virtual_server::public_html_dir($d);
+-d "$phd/git" || return &text('feat_evalidategit', "$phd/git");
 return undef;
 }
 
