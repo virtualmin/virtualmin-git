@@ -155,7 +155,13 @@ foreach my $p (@ports) {
 				$reploc->{'members'}, $conf);
 	&flush_file_lines($virt->{'file'});
 	}
-&virtual_server::register_post_action(\&virtual_server::restart_apache);
+&virtual_server::register_post_action(\&restart_apache_null);
+}
+
+sub restart_apache_null
+{
+&virtual_server::set_all_null_print();
+&virtual_server::restart_apache();
 }
 
 # add_git_repo_directives(&domain, port, &repo)
