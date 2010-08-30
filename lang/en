@@ -56,6 +56,14 @@ add_err=Failed to create repository
 add_erep=Missing or invalid repository name
 add_edom=You do not have acces to that domain
 
+mail_git=Git login enabled?
+mail_reps=Grant access to Git repositories
+mail_repsin=Allowed repos
+mail_repsopts=All repos
+mail_header=Git?
+mail_clash=A Git user with the same name already exists
+mail_pass=A password must be entered when enabling Git access for a user
+
 delete_erep=Repository does not exist
 delete_emode=No button clicked!
 delete_title=Delete Repository

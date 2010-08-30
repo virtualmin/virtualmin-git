@@ -26,7 +26,29 @@ $err = &create_rep($dom, $rep);
 &error("<pre>$err</pre>") if ($err);
 
 # Grant selected users
-# XXX
+@grants = split(/\r?\n/, $in{'users'});
+%already = map { $_->{'user'}, $_ } &list_users($dom);
+@domusers = &virtual_server::list_domain_users($dom, 0, 1, 1, 1);
+
+foreach $uname (@grants) {
+        if (!$already{$uname}) {
+		# Need to create the user
+		($domuser) = grep { &virtual_server::remove_userdom(
+                                      $_->{'user'}, $dom) eq $uname } @domusers;
+                next if (!$domuser);
+                local $newuser = { 'user' => $uname,
+                                   'enabled' => 1 };
+                &set_user_password($newuser, $domuser, $dom);
+                &virtual_server::write_as_domain_user($dom,
+                        sub { &htaccess_htpasswd::create_user(
+                                $newuser, &passwd_file($dom)) });
+                &virtual_server::set_permissions_as_domain_user(
+                        $dom, 0755, &passwd_file($dom));
+                }
+	# Add to this repo
+	push(@repousers, { 'user' => $uname });
+	}
+&save_rep_users($dom, $rep, \@repousers);
 
 &webmin_log("add", "repo", $in{'rep'}, { 'dom' => $dom->{'dom'} });
 &redirect("index.cgi?show=$in{'show'}");

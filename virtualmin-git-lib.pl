@@ -69,7 +69,10 @@ if ($ex) {
 &set_rep_permissions($d, $rep);
 
 # Create a <Location> block for the repo
-# XXX
+&virtual_server::obtain_lock_web($d);
+&add_git_repo_directives($d, $d->{'web_port'}, $rep);
+&add_git_repo_directives($d, $d->{'web_sslport'}, $rep) if ($d->{'ssl'});
+&virtual_server::release_lock_web($d);
 
 return undef;
 }
@@ -92,7 +95,11 @@ local @uinfo = getpwnam($webuser);
 sub delete_rep
 {
 local ($dom, $rep) = @_;
-&virtual_server::unlink_file_as_domain_user($dom, $rep->{'dir'});
+&unlink_logged($dom, $rep->{'dir'});
+&virtual_server::obtain_lock_web($d);
+&remove_git_repo_directives($d, $d->{'web_port'}, $rep);
+&remove_git_repo_directives($d, $d->{'web_sslport'}, $rep) if ($d->{'ssl'});
+&virtual_server::release_lock_web($d);
 }
 
 # list_users(&domain)
@@ -103,6 +110,136 @@ local ($d) = @_;
 &foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
 local $users = &htaccess_htpasswd::list_users(&passwd_file($d));
 return @$users;
+}
+
+# list_rep_users(&domain, &rep)
+# Returns a list of user hashes with access to some repo
+sub list_rep_users
+{
+local ($d, $rep) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'},
+							    $d->{'web_port'});
+print STDERR "virt=$virt\n";
+return () if (!$virt);
+local @locs = &apache::find_directive_struct("Location", $vconf);
+local ($reploc) = grep { $_->{'words'}->[0] eq "/git/".$rep->{'rep'} } @locs;
+print STDERR "reploc=$reploc path=/git/$rep->{'rep'}\n";
+return () if (!$reploc);
+local $req = &apache::find_directive_struct("Require", $reploc->{'members'});
+print STDERR "req=$req\n";
+return () if (!$req);
+local @usernames = @{$req->{'words'}};
+print STDERR "usernames=$req->{'value'}\n";
+print STDERR "usernames=".join(" ", @usernames)."\n";
+shift(@usernames);
+return map { { 'user' => $_ } } @usernames;
+}
+
+# save_rep_users(&domain, &rep, &users)
+# Updates the list of users for some repository
+sub save_rep_users
+{
+local ($d, $rep, $users) = @_;
+local @usernames = map { $_->{'user'} } @$users;
+local @ports = ( $d->{'web_port'} );
+push(@port, $d->{'web_sslport'}) if ($d->{'ssl'});
+foreach my $p (@ports) {
+	local ($virt, $vconf, $conf) =
+		&virtual_server::get_apache_virtual($d->{'dom'}, $p);
+	next if (!$virt);
+	local @locs = &apache::find_directive_struct("Location", $vconf);
+	local ($reploc) = grep { $_->{'words'}->[0] eq "/git/".$rep->{'rep'} }
+			       @locs;
+	next if (!$reploc);
+	&apache::save_directive("Require", [ "user ".join(" ", @usernames) ],
+				$reploc->{'members'}, $conf);
+	&flush_file_lines($virt->{'file'});
+	}
+&virtual_server::register_post_action(\&virtual_server::restart_apache);
+}
+
+# add_git_repo_directives(&domain, port, &repo)
+# Add Apache directives for DAV access to some path under /git
+sub add_git_repo_directives
+{
+local ($d, $port, $rep) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+if ($virt) {
+	local $lref = &read_file_lines($virt->{'file'});
+	local ($locstart, $locend) =
+	  &find_git_repo_lines($lref, $virt->{'line'}, $virt->{'eline'}, $rep);
+	local @lines;
+	if (!$locstart) {
+		push(@lines,
+			"<Location /git/$rep->{'rep'}>",
+			"Require user",
+		        "</Location>");
+		}
+	splice(@$lref, $virt->{'eline'}, 0, @lines);
+	&flush_file_lines();
+	undef(@apache::get_config_cache);
+	return 1;
+	}
+else {
+	return 0;
+	}
+}
+
+# remove_git_repo_directives(&domain, port, &rep)
+# Delete Apache directives for the /git/repo location
+sub remove_git_repo_directives
+{
+local ($d, $port) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+if ($virt) {
+        local $lref = &read_file_lines($virt->{'file'});
+        local ($locstart, $locend) =
+	  &find_git_repo_lines($lref, $virt->{'line'}, $virt->{'eline'}, $rep);
+        if ($locstart) {
+                splice(@$lref, $locstart, $locend-$locstart+1);
+                }
+        &flush_file_lines();
+        undef(@apache::get_config_cache);
+        return 1;
+        }
+else {
+        return 0;
+        }
+}
+
+# find_git_repo_lines(&directives, start, end, &repo)
+# Returns the start and end lines containing the <Location /git/repo> block
+sub find_git_repo_lines
+{
+local ($dirs, $start, $end, $rep) = @_;
+local $repname = $rep->{'rep'};
+local ($locstart, $locend, $i);
+for($i=$start; $i<=$end; $i++) {
+        if ($dirs->[$i] =~ /^\s*<Location\s+\/git\/$repname>/i && !$locstart) {
+                $locstart = $i;
+                }
+        elsif ($dirs->[$i] =~ /^\s*<\/Location>/i && $locstart && !$locend) {
+                $locend = $i;
+                }
+        }
+return ($locstart, $locend);
+}
+
+# set_user_password(&svn-user, &virtualmin-user, &domain)
+# Sets password fields for a Git user based on their virtualmin user hash
+sub set_user_password
+{
+local ($newuser, $user, $dom) = @_;
+if ($user->{'pass'} =~ /^\$/ && $user->{'plainpass'}) {
+	# MD5-hashed, re-hash plain version
+	&foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
+        $newuser->{'pass'} = &htaccess_htpasswd::encrypt_password(
+				$user->{'plainpass'});
+        }
+else {
+	# Just copy hashed password
+        $newuser->{'pass'} = $user->{'pass'};
+        }
 }
 
 1;
