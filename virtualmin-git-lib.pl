@@ -82,27 +82,6 @@ local $qdir = quotemeta($rep->{'dir'});
 &system_logged(&command_as_user($webuser, 0, 
 				"cd $qdir && $git update-server-info"));
 
-# Setup gitweb.cgi
-local $src = &find_gitweb();
-local $gitweb = "$rep->{'dir'}/gitweb.cgi";
-&virtual_server::copy_source_dest_as_domain_user($d, $src, $gitweb);
-&virtual_server::set_permissions_as_domain_user($d, 0755, $gitweb);
-my $lref = &virtual_server::read_file_lines_as_domain_user($d, $gitweb);
-foreach my $l (@$lref) {
-	if ($l =~ /^our\s+\$GIT\s+=/) {
-		$l = "our \$GIT = '$git';";
-		}
-	if ($l =~ /^our\s+\$projectroot\s+=/) {
-		$l = "our \$projectroot = '$rep->{'dir'}';";
-		}
-	}
-&virtual_server::flush_file_lines_as_domain_user($d, $gitweb);
-
-# XXX copy into place
-# XXX edit file to set paths
-# XXX copy png and css files
-# XXX configure Apache to run it
-
 return undef;
 }
 
@@ -112,6 +91,17 @@ sub find_gitweb
 {
 # XXX debian? centos?
 return "$module_root_directory/gitweb.cgi.source";
+}
+
+# find_gitweb_data()
+# Returns the paths to additional files needed by gitweb
+sub find_gitweb_data
+{
+# XXX debian? centos?
+return ( "$module_root_directory/git-favicon.png",
+	 "$module_root_directory/git-logo.png",
+	 "$module_root_directory/gitweb.css" );
+
 }
 
 # set_rep_permissions(&domain, &rep)

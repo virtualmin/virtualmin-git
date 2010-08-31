@@ -78,6 +78,7 @@ sub feature_setup
 local ($d) = @_;
 &$virtual_server::first_print($text{'setup_git'});
 &virtual_server::obtain_lock_web($d);
+local $phd = &virtual_server::public_html_dir($d);
 local $any;
 $any++ if (&add_git_directives($d, $d->{'web_port'}));
 $any++ if ($d->{'ssl'} &&
@@ -89,7 +90,6 @@ if (!$any) {
 else {
 	# Create needed directories ~/etc/ and ~/public_html/git
 	local $passwd_file = &passwd_file($d);
-	local $phd = &virtual_server::public_html_dir($d);
 	if (!-d "$phd/git") {
 		&virtual_server::make_dir_as_domain_user(
 			$d, "$phd/git", 02755);
@@ -131,6 +131,31 @@ else {
 			$virtual_server::text{'setup_done'});
 		}
 	}
+
+# Setup gitweb if possible
+&$virtual_server::first_print($text{'feat_gitweb'});
+local $git = &has_command("git") || "git";
+local $src = &find_gitweb();
+local $gitweb = "$phd/git/gitweb.cgi";
+&virtual_server::copy_source_dest_as_domain_user($d, $src, $gitweb);
+&virtual_server::set_permissions_as_domain_user($d, 0755, $gitweb);
+my $lref = &virtual_server::read_file_lines_as_domain_user($d, $gitweb);
+foreach my $l (@$lref) {
+	if ($l =~ /^our\s+\$GIT\s+=/) {
+		$l = "our \$GIT = '$git';";
+		}
+	if ($l =~ /^our\s+\$projectroot\s+=/) {
+		$l = "our \$projectroot = '$phd/git';";
+		}
+	}
+&virtual_server::flush_file_lines_as_domain_user($d, $gitweb);
+foreach my $src (&find_gitweb_data()) {
+	local $gitfile = $src;
+	$gitfile =~ s/^.*\///;
+	$gitfile = "$phd/git/$gitfile";
+	&virtual_server::copy_source_dest_as_domain_user($d, $src, $gitfile);
+	}
+&$virtual_server::second_print($virtual_server::text{'setup_done'});
 
 # Set default limit from template
 if (!exists($d->{$module_name."limit"})) {
@@ -175,6 +200,7 @@ if ($virt) {
 			"Require valid-user",
 			"Satisfy Any",
 			@norewrite,
+			"AddHandler cgi-script .cgi",
 		        "</Location>");
 		}
 	splice(@$lref, $virt->{'eline'}, 0, @lines);
@@ -254,12 +280,21 @@ if (!$any) {
 else {
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	&virtual_server::register_post_action(\&virtual_server::restart_apache);
+	}
 
-	# Remove negative proxy for /git
-	if (defined(&virtual_server::delete_noproxy_path)) {
-		&virtual_server::delete_noproxy_path(
-			$d, { }, undef, { 'path' => '/git/' });
-		}
+# Remove gitweb.cgi
+local $phd = &virtual_server::public_html_dir($d);
+&virtual_server::unlink_file_as_domain_user($d, "$phd/git/gitweb.cgi");
+foreach my $gitfile (&find_gitweb_data()) {
+	$gitfile =~ s/^.*\///;
+        $gitfile = "$phd/git/$gitfile";
+	&virtual_server::unlink_file_as_domain_user($d, $gitfile);
+	}
+
+# Remove negative proxy for /git
+if (defined(&virtual_server::delete_noproxy_path)) {
+	&virtual_server::delete_noproxy_path(
+		$d, { }, undef, { 'path' => '/git/' });
 	}
 }
 
