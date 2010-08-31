@@ -55,13 +55,15 @@ else {
 sub create_rep
 {
 local ($d, $rep) = @_;
+local $git = &has_command($config{'git'});
+$git || return "Git command $config{'git'} was not found!";
 
 # Make the dir and setup a repo in it
 $rep->{'dir'} = &virtual_server::public_html_dir($d)."/git/$rep->{'rep'}.git";
 if (!-d $rep->{'dir'}) {
 	&virtual_server::make_dir_as_domain_user($d, $rep->{'dir'});
 	}
-local $cmd = "cd ".quotemeta($rep->{'dir'})." && $config{'git'} --bare init";
+local $cmd = "cd ".quotemeta($rep->{'dir'})." && $git --bare init";
 local ($out, $ex) = &virtual_server::run_as_domain_user($d, $cmd);
 if ($ex) {
 	return $out;
@@ -74,7 +76,42 @@ if ($ex) {
 &add_git_repo_directives($d, $d->{'web_sslport'}, $rep) if ($d->{'ssl'});
 &virtual_server::release_lock_web($d);
 
+# Run update-server-info as Apache
+local $webuser = &virtual_server::get_apache_user($d);
+local $qdir = quotemeta($rep->{'dir'});
+&system_logged(&command_as_user($webuser, 0, 
+				"cd $qdir && $git update-server-info"));
+
+# Setup gitweb.cgi
+local $src = &find_gitweb();
+local $gitweb = "$rep->{'dir'}/gitweb.cgi";
+&virtual_server::copy_source_dest_as_domain_user($d, $src, $gitweb);
+&virtual_server::set_permissions_as_domain_user($d, 0755, $gitweb);
+my $lref = &virtual_server::read_file_lines_as_domain_user($d, $gitweb);
+foreach my $l (@$lref) {
+	if ($l =~ /^our\s+\$GIT\s+=/) {
+		$l = "our \$GIT = '$git';";
+		}
+	if ($l =~ /^our\s+\$projectroot\s+=/) {
+		$l = "our \$projectroot = '$rep->{'dir'}';";
+		}
+	}
+&virtual_server::flush_file_lines_as_domain_user($d, $gitweb);
+
+# XXX copy into place
+# XXX edit file to set paths
+# XXX copy png and css files
+# XXX configure Apache to run it
+
 return undef;
+}
+
+# find_gitweb()
+# Returns the path to the gitweb.cgi script
+sub find_gitweb
+{
+# XXX debian? centos?
+return "$module_root_directory/gitweb.cgi.source";
 }
 
 # set_rep_permissions(&domain, &rep)
