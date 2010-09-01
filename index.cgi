@@ -52,8 +52,13 @@ foreach $r (@reps) {
 	@actions = (
 		&ui_submit($text{'delete'},
 			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
+		&ui_submit($text{'index_browse'},
+			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
+		&ui_submit($text{'index_help'},
+			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
 		);
-	push(@table, [ $r->{'rep'}, $dom, $r->{'dir'}, join(" ", @actions) ]);
+	push(@table, [ $r->{'rep'}, $showd ? ( ) : ( $dom ),
+		       $r->{'dir'}, $r->{'desc'}, join(" ", @actions) ]);
 	}
 
 # Show table of repos
@@ -67,8 +72,11 @@ print &ui_form_columns_table(
 	0,
 	undef,
 	[ [ 'show', $in{'show'} ] ],
-	[ $text{'index_rep'}, $text{'index_dom'},
-	  $text{'index_dir'}, $text{'index_action'} ],
+	[ $text{'index_rep'},
+	  $showd ? ( ) : ( $text{'index_dom'} ),
+	  $text{'index_desc'},
+	  $text{'index_dir'},
+	  $text{'index_action'} ],
 	100,
 	\@table,
 	undef,
@@ -91,6 +99,11 @@ else {
 	# Repo name
 	print &ui_table_row($text{'index_rep'},
 			    &ui_textbox("rep", undef, 20), 1);
+
+	# Description
+	print &ui_table_row($text{'index_desc'},
+	    &ui_textbox("desc", $showd ? "Git repository for $showd->{'owner'}"
+				       : "My Git repository", 40), 1);
 
 	# In domain
 	print &ui_table_row($text{'index_dom'},

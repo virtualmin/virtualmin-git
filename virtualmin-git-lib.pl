@@ -21,9 +21,11 @@ local $dir = &virtual_server::public_html_dir($d)."/git";
 opendir(DIR, $dir);
 while(my $f = readdir(DIR)) {
         if ($f =~ /^(\S+)\.git$/) {
-                push(@rv, { 'dom' => $d,
-                            'rep' => $1,
-                            'dir' => "$dir/$f" });
+                local $rep = { 'dom' => $d,
+                               'rep' => $1,
+                               'dir' => "$dir/$f" };
+		$rep->{'desc'} = &virtual_server::read_file_contents_as_domain_user($d, $rep->{'dir'}."/description");
+		push(@rv, $rep);
                 }
         }
 closedir(DIR);
@@ -50,11 +52,11 @@ else {
         }
 }
 
-# create_rep(&domain, &rep)
+# create_rep(&domain, &rep, description)
 # Creates a new Git repository in some domain
 sub create_rep
 {
-local ($d, $rep) = @_;
+local ($d, $rep, $desc) = @_;
 local $git = &has_command($config{'git'});
 $git || return "Git command $config{'git'} was not found!";
 
@@ -82,6 +84,14 @@ local $qdir = quotemeta($rep->{'dir'});
 &system_logged(&command_as_user($webuser, 0, 
 				"cd $qdir && $git update-server-info"));
 
+# Set description file
+if ($desc) {
+	local $descfile = "$rep->{'dir'}/description";
+	&virtual_server::open_tempfile_as_domain_user($d, DESC, ">$descfile");
+	&print_tempfile(DESC, $desc."\n");
+	&virtual_server::close_tempfile_as_domain_user($d, DESC);
+	}
+
 return undef;
 }
 
@@ -89,19 +99,27 @@ return undef;
 # Returns the path to the gitweb.cgi script
 sub find_gitweb
 {
-# XXX debian? centos?
-return "$module_root_directory/gitweb.cgi.source";
+foreach my $p ("/var/www/git/gitweb.cgi",	# CentOS
+	       "/usr/lib/cgi-bin/gitweb.cgi",	# Ubuntu
+	       "$module_root_directory/gitweb.cgi.source") {
+	return $p if (-r $p);
+	}
+return undef;
 }
 
 # find_gitweb_data()
 # Returns the paths to additional files needed by gitweb
 sub find_gitweb_data
 {
-# XXX debian? centos?
-return ( "$module_root_directory/git-favicon.png",
-	 "$module_root_directory/git-logo.png",
-	 "$module_root_directory/gitweb.css" );
-
+local @files = ( "git-favicon.png", "git-logo.png", "gitweb.css" );
+foreach my $p ("/var/www/git",			# CentOS
+	       "/var/www",			# Ubuntu
+	       $module_root_directory) {
+	if (-r "$p/$files[0]") {
+		return map { "$p/$_" } @files;
+		}
+	}
+return ( );
 }
 
 # set_rep_permissions(&domain, &rep)
@@ -146,18 +164,14 @@ sub list_rep_users
 local ($d, $rep) = @_;
 local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'},
 							    $d->{'web_port'});
-print STDERR "virt=$virt\n";
 return () if (!$virt);
 local @locs = &apache::find_directive_struct("Location", $vconf);
-local ($reploc) = grep { $_->{'words'}->[0] eq "/git/".$rep->{'rep'} } @locs;
-print STDERR "reploc=$reploc path=/git/$rep->{'rep'}\n";
+local ($reploc) = grep { $_->{'words'}->[0] eq "/git/".$rep->{'rep'}.".git" }
+		       @locs;
 return () if (!$reploc);
 local $req = &apache::find_directive_struct("Require", $reploc->{'members'});
-print STDERR "req=$req\n";
 return () if (!$req);
 local @usernames = @{$req->{'words'}};
-print STDERR "usernames=$req->{'value'}\n";
-print STDERR "usernames=".join(" ", @usernames)."\n";
 shift(@usernames);
 return map { { 'user' => $_ } } @usernames;
 }
@@ -175,8 +189,8 @@ foreach my $p (@ports) {
 		&virtual_server::get_apache_virtual($d->{'dom'}, $p);
 	next if (!$virt);
 	local @locs = &apache::find_directive_struct("Location", $vconf);
-	local ($reploc) = grep { $_->{'words'}->[0] eq "/git/".$rep->{'rep'} }
-			       @locs;
+	local ($reploc) = grep { $_->{'words'}->[0] eq
+				 "/git/".$rep->{'rep'}.".git" } @locs;
 	next if (!$reploc);
 	&apache::save_directive("Require", [ "user ".join(" ", @usernames) ],
 				$reploc->{'members'}, $conf);
@@ -204,7 +218,7 @@ if ($virt) {
 	local @lines;
 	if (!$locstart) {
 		push(@lines,
-			"<Location /git/$rep->{'rep'}>",
+			"<Location /git/$rep->{'rep'}.git>",
 			"Require user",
 		        "</Location>");
 		}
@@ -248,7 +262,8 @@ local ($dirs, $start, $end, $rep) = @_;
 local $repname = $rep->{'rep'};
 local ($locstart, $locend, $i);
 for($i=$start; $i<=$end; $i++) {
-        if ($dirs->[$i] =~ /^\s*<Location\s+\/git\/$repname>/i && !$locstart) {
+        if ($dirs->[$i] =~ /^\s*<Location\s+\/git\/\Q$repname\E\.git>/i &&
+	    !$locstart) {
                 $locstart = $i;
                 }
         elsif ($dirs->[$i] =~ /^\s*<\/Location>/i && $locstart && !$locend) {

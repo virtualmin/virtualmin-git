@@ -22,7 +22,7 @@ if ($access{'max'}) {
 
 # Run the create command
 $rep = { 'rep' => $in{'rep'} };
-$err = &create_rep($dom, $rep);
+$err = &create_rep($dom, $rep, $in{'desc'});
 &error("<pre>$err</pre>") if ($err);
 
 # Grant selected users

@@ -192,16 +192,18 @@ if ($virt) {
 		}
 	if (!$locstart) {
 		push(@lines,
-			"<Location /git>",
-			"DAV on",
-			"AuthType Basic",
-			"AuthName $d->{'dom'}",
-			"AuthUserFile $passwd_file",
-			"Require valid-user",
-			"Satisfy Any",
-			@norewrite,
-			"AddHandler cgi-script .cgi",
-		        "</Location>");
+		    "<Location /git>",
+		    "DAV on",
+		    "AuthType Basic",
+		    "AuthName $d->{'dom'}",
+		    "AuthUserFile $passwd_file",
+		    "Require valid-user",
+		    "Satisfy All",
+		    "RedirectMatch ^/git\$ http://$d->{'dom'}/git/gitweb.cgi",
+		    "RedirectMatch ^/git/\$ http://$d->{'dom'}/git/gitweb.cgi",
+		    @norewrite,
+		    "AddHandler cgi-script .cgi",
+		    "</Location>");
 		}
 	splice(@$lref, $virt->{'eline'}, 0, @lines);
 	&flush_file_lines();

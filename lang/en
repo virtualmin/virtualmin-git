@@ -30,6 +30,7 @@ delete_git=Removing Git directives from website configuration ..
 index_title=Git Repositories
 index_none=No Git repositories have been defined in any of your servers yet.
 index_rep=Repository name
+index_desc=Repository description
 index_dom=Under server
 index_dir=Directory
 index_action=Actions
@@ -53,6 +54,8 @@ index_eshow=Virtual server to show does not exist!
 index_grant=Grant access to users
 index_allusers=Users in domain
 index_grantusers=Users with access
+index_browse=Browse Repository
+index_help=Repository Commands
 
 add_err=Failed to create repository
 add_erep=Missing or invalid repository name
@@ -84,3 +87,10 @@ tmpl_elimit=Missing or invalid limit on number of Git repositories
 
 log_add_repo=Created repository $1 in $2
 log_delete_repo=Deleted repository $1 in $2
+
+help_title=Repository Commands
+help_init=Local repository initialization
+help_remote=Setting up access to this repository
+help_pull=Checkout commands
+help_push=Checkin commands
+help_first=Initial repository creation
