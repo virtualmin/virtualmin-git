@@ -27,6 +27,7 @@ $user = @users ? $users[0]->{'user'} : "\$username";
 
 &print_git_commands($text{'help_first'},
 	"cd ~/$rep->{'rep'}",
+	"git --bare init",
 	"echo hello &gt; hello.txt",
 	"git add hello.txt",
 	"git commit -m 'initial checkin'",

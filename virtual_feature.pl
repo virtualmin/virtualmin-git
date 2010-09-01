@@ -147,6 +147,9 @@ foreach my $l (@$lref) {
 	if ($l =~ /^our\s+\$projectroot\s+=/) {
 		$l = "our \$projectroot = '$phd/git';";
 		}
+	if ($l =~ /^our\s+\$GITWEB_CONFIG\s+=/) {
+		$l = "our \$GITWEB_CONFIG = '';";
+		}
 	}
 &virtual_server::flush_file_lines_as_domain_user($d, $gitweb);
 foreach my $src (&find_gitweb_data()) {
