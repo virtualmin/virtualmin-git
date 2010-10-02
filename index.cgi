@@ -58,7 +58,7 @@ foreach $r (@reps) {
 			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
 		);
 	push(@table, [ $r->{'rep'}, $showd ? ( ) : ( $dom ),
-		       $r->{'dir'}, $r->{'desc'}, join(" ", @actions) ]);
+		       $r->{'desc'}, $r->{'dir'}, join(" ", @actions) ]);
 	}
 
 # Show table of repos
