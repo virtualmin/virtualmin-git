@@ -94,3 +94,4 @@ help_remote=Setting up access to this repository
 help_pull=Checkout commands
 help_push=Checkin commands
 help_first=Initial repository creation
+__norefs=1
