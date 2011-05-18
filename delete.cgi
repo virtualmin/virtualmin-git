@@ -44,7 +44,8 @@ if ($button eq &entities_to_ascii($text{'delete'})) {
 	}
 elsif ($button eq &entities_to_ascii($text{'index_browse'})) {
 	# Redirect to gitweb
-	&redirect("http://$dom->{'dom'}/git/gitweb.cgi?p=".
+	$proto = $dom->{'ssl'} ? "https" : "http";
+	&redirect("$proto://$dom->{'dom'}/git/gitweb.cgi?p=".
 		  &urlize("$rep->{'rep'}.git"));
 	}
 elsif ($button eq &entities_to_ascii($text{'index_help'})) {
