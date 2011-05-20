@@ -135,20 +135,24 @@ else {
 # Setup gitweb if possible
 &$virtual_server::first_print($text{'feat_gitweb'});
 local $git = &has_command("git") || "git";
+local $gitdir = $git =~ /^(.*)\// ? $1 : "/usr/bin";
 local $src = &find_gitweb();
 local $gitweb = "$phd/git/gitweb.cgi";
 &virtual_server::copy_source_dest_as_domain_user($d, $src, $gitweb);
 &virtual_server::set_permissions_as_domain_user($d, 0755, $gitweb);
 my $lref = &virtual_server::read_file_lines_as_domain_user($d, $gitweb);
 foreach my $l (@$lref) {
-	if ($l =~ /^our\s+\$GIT\s+=/) {
-		$l = "our \$GIT = '$git';";
+	if ($l =~ /^(our|my)\s+\$GIT\s+=/) {
+		$l = "$1 \$GIT = '$git';";
 		}
-	if ($l =~ /^our\s+\$projectroot\s+=/) {
-		$l = "our \$projectroot = '$phd/git';";
+	elsif ($l =~ /^(our|my)\s+\$gitbin\s+=/) {
+		$l = "$1 \$gitbin = '$gitdir';";
 		}
-	if ($l =~ /^our\s+\$GITWEB_CONFIG\s+=/) {
-		$l = "our \$GITWEB_CONFIG = '';";
+	if ($l =~ /^(our|my)\s+\$projectroot\s+=/) {
+		$l = "$1 \$projectroot = '$phd/git';";
+		}
+	if ($l =~ /^(our|my)\s+\$GITWEB_CONFIG\s+=/) {
+		$l = "$1 \$GITWEB_CONFIG = '';";
 		}
 	}
 &virtual_server::flush_file_lines_as_domain_user($d, $gitweb);
