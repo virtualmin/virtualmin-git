@@ -95,13 +95,27 @@ if ($desc) {
 return undef;
 }
 
+sub get_git_version
+{
+my $out = &backquote_command("git --version </dev/null 2>&1");
+if ($out =~ /version\s+(\S+)/) {
+	return $1;
+	}
+return undef;
+}
+
 # find_gitweb()
 # Returns the path to the gitweb.cgi script
 sub find_gitweb
 {
+my $ver = &get_git_version();
+my $localcgi = "gitweb.cgi.source";
+if ($ver >= 1.7) {
+	$localcgi .= ".new";
+	}
 foreach my $p ("/var/www/git/gitweb.cgi",	# CentOS
 	       "/usr/lib/cgi-bin/gitweb.cgi",	# Ubuntu
-	       "$module_root_directory/gitweb.cgi.source") {
+	       "$module_root_directory/$localcgi") {
 	return $p if (-r $p);
 	}
 return undef;
