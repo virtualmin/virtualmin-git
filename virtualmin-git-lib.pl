@@ -292,7 +292,11 @@ return ($locstart, $locend);
 sub set_user_password
 {
 local ($newuser, $user, $dom) = @_;
-if ($user->{'pass'} =~ /^\$/ && $user->{'plainpass'}) {
+if ($user->{'pass_crypt'}) {
+	# Hashed password is available, use it
+	$newuser->{'pass'} = $user->{'pass_crypt'};
+	}
+elsif ($user->{'pass'} =~ /^\$/ && $user->{'plainpass'}) {
 	# MD5-hashed, re-hash plain version
 	&foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
         $newuser->{'pass'} = &htaccess_htpasswd::encrypt_password(

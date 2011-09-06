@@ -627,8 +627,8 @@ if ($un ne $oun && $suser) {
 
 if ($user->{'passmode'} == 3) {
 	# Password was changed
-	$suser->{'pass'} = &htaccess_htpasswd::encrypt_password(
-		$user->{'plainpass'});
+	$suser->{'pass'} = $user->{'pass_crypt'} ||
+	    &htaccess_htpasswd::encrypt_password($user->{'plainpass'});
 	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::modify_user($suser) });
 	}
