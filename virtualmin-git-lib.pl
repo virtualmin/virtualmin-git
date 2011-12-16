@@ -92,6 +92,15 @@ if ($desc) {
 	&virtual_server::close_tempfile_as_domain_user($d, DESC);
 	}
 
+# Set domain owner name in config file
+local $cfile = "$rep->{'dir'}/config";
+if (-r $cfile) {
+	local $lref = &virtual_server::read_file_lines_as_domain_user(
+				$d, $cfile);
+	push(@$lref, "", "[gitweb]", "\towner=$d->{'user'}");
+	&virtual_server::flush_file_lines_as_domain_user($d, $cfile);
+	}
+
 return undef;
 }
 
