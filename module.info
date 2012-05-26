@@ -4,3 +4,4 @@ depends=virtual-server/3.70 htaccess-htpasswd 1.420
 version=1.3
 readonly=1
 feedback=jcameron@webmin.com
+desc_nl=Virtualmin Git Opslagplaatsen
