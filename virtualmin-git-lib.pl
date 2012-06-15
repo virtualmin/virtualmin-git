@@ -125,7 +125,20 @@ if ($ver >= 1.7) {
 foreach my $p ("/var/www/git/gitweb.cgi",	# CentOS
 	       "/usr/lib/cgi-bin/gitweb.cgi",	# Ubuntu
 	       "$module_root_directory/$localcgi") {
-	return $p if (-r $p);
+	if (-r $p) {
+		# Exists .. but does it use a stupid static/ path?
+		my $lref = &read_file_lines($p, 1);
+		my $static = 0;
+		foreach my $l (@$lref) {
+			if ($l =~ /\@stylesheets\s*=.*static\//) {
+				$static = 1;
+				}
+			}
+		&unflush_file_lines($p);
+		if (!$static) {
+			return $p;
+			}
+		}
 	}
 return undef;
 }
