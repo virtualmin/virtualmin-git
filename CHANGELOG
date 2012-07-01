@@ -1,0 +1,2 @@
+---- Changes since 1.3 ----
+When creating a new Git repository, anonymous web read access can be granted.

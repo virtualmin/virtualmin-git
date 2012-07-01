@@ -52,11 +52,11 @@ else {
         }
 }
 
-# create_rep(&domain, &rep, description)
+# create_rep(&domain, &rep, description, [allow-anonymous])
 # Creates a new Git repository in some domain
 sub create_rep
 {
-local ($d, $rep, $desc) = @_;
+local ($d, $rep, $desc, $anon) = @_;
 local $git = &has_command($config{'git'});
 $git || return "Git command $config{'git'} was not found!";
 
@@ -74,8 +74,8 @@ if ($ex) {
 
 # Create a <Location> block for the repo
 &virtual_server::obtain_lock_web($d);
-&add_git_repo_directives($d, $d->{'web_port'}, $rep);
-&add_git_repo_directives($d, $d->{'web_sslport'}, $rep) if ($d->{'ssl'});
+&add_git_repo_directives($d, $d->{'web_port'}, $rep, $anon);
+&add_git_repo_directives($d, $d->{'web_sslport'}, $rep, $anon) if ($d->{'ssl'});
 &virtual_server::release_lock_web($d);
 
 # Run update-server-info as Apache
@@ -175,8 +175,8 @@ local @uinfo = getpwnam($webuser);
 # Delete a Git repository's directory
 sub delete_rep
 {
-local ($dom, $rep) = @_;
-&unlink_logged($dom, $rep->{'dir'});
+local ($d, $rep) = @_;
+&unlink_logged($rep->{'dir'});
 &virtual_server::obtain_lock_web($d);
 &remove_git_repo_directives($d, $d->{'web_port'}, $rep);
 &remove_git_repo_directives($d, $d->{'web_sslport'}, $rep) if ($d->{'ssl'});
@@ -205,7 +205,10 @@ local @locs = &apache::find_directive_struct("Location", $vconf);
 local ($reploc) = grep { $_->{'words'}->[0] eq "/git/".$rep->{'rep'}.".git" }
 		       @locs;
 return () if (!$reploc);
-local $req = &apache::find_directive_struct("Require", $reploc->{'members'});
+local ($limitloc) = &apache::find_directive_struct("LimitExcept",
+						   $reploc->{'members'});
+local $req = &apache::find_directive_struct("Require",
+		$limitloc ? $limitloc->{'members'} : $reploc->{'members'});
 return () if (!$req);
 local @usernames = @{$req->{'words'}};
 shift(@usernames);
@@ -228,8 +231,11 @@ foreach my $p (@ports) {
 	local ($reploc) = grep { $_->{'words'}->[0] eq
 				 "/git/".$rep->{'rep'}.".git" } @locs;
 	next if (!$reploc);
+	local ($limitloc) = &apache::find_directive_struct(
+				"LimitExcept", $reploc->{'members'});
 	&apache::save_directive("Require", [ "user ".join(" ", @usernames) ],
-				$reploc->{'members'}, $conf);
+				$limitloc ? $limitloc->{'members'}
+					  : $reploc->{'members'}, $conf);
 	&flush_file_lines($virt->{'file'});
 	}
 &virtual_server::register_post_action(\&restart_apache_null);
@@ -241,11 +247,11 @@ sub restart_apache_null
 &virtual_server::restart_apache();
 }
 
-# add_git_repo_directives(&domain, port, &repo)
+# add_git_repo_directives(&domain, port, &repo, [allow-anonymous])
 # Add Apache directives for DAV access to some path under /git
 sub add_git_repo_directives
 {
-local ($d, $port, $rep) = @_;
+local ($d, $port, $rep, $anon) = @_;
 local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
 if ($virt) {
 	local $lref = &read_file_lines($virt->{'file'});
@@ -254,9 +260,15 @@ if ($virt) {
 	local @lines;
 	if (!$locstart) {
 		push(@lines,
-			"<Location /git/$rep->{'rep'}.git>",
-			"Require user",
-		        "</Location>");
+		  "<Location /git/$rep->{'rep'}.git>",
+		  ($anon ? ("<LimitExcept GET HEAD PROPFIND OPTIONS REPORT>",
+			    "Require user",
+			    "</LimitExcept>",
+			    "<Limit GET HEAD PROPFIND OPTIONS REPORT>",
+			    "Satisfy Any",
+			    "</Limit>")
+		         : ("Require user")),
+		  "</Location>");
 		}
 	splice(@$lref, $virt->{'eline'}, 0, @lines);
 	&flush_file_lines();

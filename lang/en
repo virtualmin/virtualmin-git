@@ -32,6 +32,7 @@ index_none=No Git repositories have been defined in any of your servers yet.
 index_rep=Repository name
 index_desc=Repository description
 index_dom=Under server
+index_anonro=Allow anonymous read access?
 index_dir=Directory
 index_action=Actions
 index_header=Create Git Repository

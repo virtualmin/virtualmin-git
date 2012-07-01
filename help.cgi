@@ -43,6 +43,10 @@ $user = @users ? $users[0]->{'user'} : "\$username";
 	"git commit",
 	"git push upload master");
 
+&print_git_commands($text{'help_anon'},
+	"cd ~",
+	"git clone remote.upload.url http://$user/git/$rep->{'rep'}.git/ ~/anontest");
+
 &ui_print_footer("index.cgi?show=$in{'show'}",
 		 $text{'index_return'});
 

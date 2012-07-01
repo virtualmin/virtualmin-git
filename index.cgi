@@ -123,13 +123,18 @@ else {
 		print &ui_table_row($text{'index_grant'},
 			&ui_multi_select(
 			    "users",
-			    [ ],
+			    !$showd || $showd->{'parent'} ? [ ] :
+				[ [ $showd->{'user'}, $showd->{'user'} ] ],
 			    [ map { [ $_, $_ ] } @unames ],
 			    5, 0, 0,
 			    $text{'index_allusers'},
 			    $text{'index_grantusers'},
 			    ));
 		}
+
+	# Allow anonymous access
+	print &ui_table_row($text{'index_anonro'},
+		&ui_yesno_radio("anon", 0));
 
 	print &ui_table_end();
 	print &ui_submit($text{'create'});
