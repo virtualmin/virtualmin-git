@@ -95,4 +95,6 @@ help_remote=Setting up access to this repository
 help_pull=Checkout commands
 help_push=Checkin commands
 help_first=Initial repository creation
+help_anon=Checking out this repository anonymously
+
 __norefs=1
