@@ -2,6 +2,7 @@ feat_name=Git repositories
 feat_losing=Git access via the website will be disabled
 feat_disname=subversion repositories
 feat_label=Allow Git repositories?
+feat_label2=Git repositories
 feat_edepweb=Git cannot be enabled unless a website is
 feat_echeck=The Git administration command $1 is not installed
 feat_backup=Backing up Git repositories and configuration files ..
