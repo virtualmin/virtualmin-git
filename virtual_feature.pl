@@ -155,6 +155,12 @@ foreach my $l (@$lref) {
 	if ($l =~ /^(our|my)\s+\$GITWEB_CONFIG\s+=/) {
 		$l = "$1 \$GITWEB_CONFIG = '';";
 		}
+	if ($l =~ /^(our|my)\s+\$git_base_url\s+=/) {
+		$l = "$1 \$git_base_url = 'http://$d->{'dom'}/git';";
+		}
+	if ($l =~ /^(our|my)\s+\$snapshots_url\s+=/) {
+		$l = "$1 \$snapshots_url = 'http://$d->{'dom'}/git';";
+		}
 	}
 &virtual_server::flush_file_lines_as_domain_user($d, $gitweb);
 foreach my $src (&find_gitweb_data()) {
