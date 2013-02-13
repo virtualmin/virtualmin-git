@@ -19,6 +19,7 @@ feat_evalidateconf=Git configuration file $1 does not exist
 feat_evalidateloc=Missing Git Location from Apache configuration
 feat_evalidategit=Missing Git repositories directory $1
 feat_gitweb=Setting up Gitweb repository browser ..
+feat_module=Virtualmin Git Repositories (for managing repositories)
 
 setup_git=Adding Git directives to website configuration ..
 setup_gituser=Adding Git account for server administrator

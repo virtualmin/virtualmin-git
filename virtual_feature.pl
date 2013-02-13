@@ -371,6 +371,11 @@ return ( { 'mod' => $module_name,
           } );
 }
 
+sub feature_modules
+{
+return ( [ $module_name, $text{'feat_module'} ] );
+}
+
 # feature_backup(&domain, file, &opts, &all-opts)
 # Backup all Git repositories and the users file
 sub feature_backup
