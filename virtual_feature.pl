@@ -136,7 +136,8 @@ else {
 # Setup gitweb if possible
 &$virtual_server::first_print($text{'feat_gitweb'});
 local $git = &has_command("git") || "git";
-local $gitdir = $git =~ /^(.*)\// ? $1 : "/usr/bin";
+local $gitdir = -e "/usr/lib/git-core/git-rev-list" ? "/usr/lib/git-core" :
+		$git =~ /^(.*)\// ? $1 : "/usr/bin";
 local $src = &find_gitweb();
 local $gitweb = "$phd/git/gitweb.cgi";
 &virtual_server::copy_source_dest_as_domain_user($d, $src, $gitweb);
