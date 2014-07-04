@@ -387,6 +387,11 @@ local ($d, $file, $opts) = @_;
 # Copy actual repositories
 local $phd = &virtual_server::public_html_dir($d);
 local $tar = &virtual_server::get_tar_command();
+local @files = glob("$phd/git/*");
+if (!@files) {
+	&$virtual_server::second_print($text{'feat_norepos'});
+	return 1;
+	}
 local $out = &backquote_command("cd ".quotemeta("$phd/git")." && ".
                                 "$tar cf ".quotemeta($file)." . 2>&1");
 if ($?) {

@@ -8,6 +8,7 @@ feat_echeck=The Git administration command $1 is not installed
 feat_backup=Backing up Git repositories and configuration files ..
 feat_tar=.. failed to TAR up repositories : $1
 feat_nopfile=.. users file not found!
+feat_norepos=.. no Git repositories have been created yet
 feat_nocfile=.. configuration file not found!
 feat_backup_name=Git repositories and configuration files
 feat_untar=.. failed to un-TAR repositories : $1
