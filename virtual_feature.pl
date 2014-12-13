@@ -392,12 +392,15 @@ if (!@files) {
 	&$virtual_server::second_print($text{'feat_norepos'});
 	return 1;
 	}
+local $temp = &transname();
 local $out = &backquote_command("cd ".quotemeta("$phd/git")." && ".
-                                "$tar cf ".quotemeta($file)." . 2>&1");
+                                "$tar cf ".quotemeta($temp)." . 2>&1");
 if ($?) {
         &$virtual_server::second_print(&text('feat_tar', "<pre>$out</pre>"));
         return 0;
         }
+&virtual_server::copy_write_as_domain_user($d, $temp, $file);
+&unlink_file($temp);
 
 # Copy users file
 local $pfile = &passwd_file($_[0]);
@@ -405,7 +408,7 @@ if (!-r $pfile) {
         &$virtual_server::second_print($text{'feat_nopfile'});
         return 0;
         }
-&copy_source_dest($pfile, $file."_users");
+&copy_write_as_domain_user($d, $pfile, $file."_users");
 
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 return 1;
