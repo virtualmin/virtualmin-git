@@ -408,7 +408,7 @@ if (!-r $pfile) {
         &$virtual_server::second_print($text{'feat_nopfile'});
         return 0;
         }
-&copy_write_as_domain_user($d, $pfile, $file."_users");
+&virtual_server::copy_write_as_domain_user($d, $pfile, $file."_users");
 
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 return 1;
