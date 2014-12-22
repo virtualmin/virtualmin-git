@@ -49,11 +49,15 @@ if (!@mydoms) {
 @table = ( );
 foreach $r (@reps) {
 	$dom = $r->{'dom'}->{'dom'};
+	$proto = $r->{'dom'}->{'ssl'} ? "https" : "http";
+	$url = "$proto://$r->{'dom'}->{'dom'}/git/gitweb.cgi?p=".
+               &urlize("$r->{'rep'}.git");
 	@actions = (
 		&ui_submit($text{'delete'},
 			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
 		&ui_submit($text{'index_browse'},
-			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
+			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}, 0,
+			   "onClick='window.open(\"$url\"); return false;'"),
 		&ui_submit($text{'index_help'},
 			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
 		);
