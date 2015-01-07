@@ -1,6 +1,6 @@
 desc=Virtualmin Git Repositories
 category=servers
-depends=virtual-server/1.730 htaccess-htpasswd 1.420
+depends=virtual-server/4.13 htaccess-htpasswd 1.420
 version=1.6
 readonly=1
 feedback=jcameron@webmin.com
