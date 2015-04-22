@@ -222,7 +222,7 @@ sub save_rep_users
 local ($d, $rep, $users) = @_;
 local @usernames = map { $_->{'user'} } @$users;
 local @ports = ( $d->{'web_port'} );
-push(@port, $d->{'web_sslport'}) if ($d->{'ssl'});
+push(@ports, $d->{'web_sslport'}) if ($d->{'ssl'});
 foreach my $p (@ports) {
 	local ($virt, $vconf, $conf) =
 		&virtual_server::get_apache_virtual($d->{'dom'}, $p);
