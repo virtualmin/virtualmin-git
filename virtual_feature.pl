@@ -508,9 +508,7 @@ if (!$suser && !@rwreps) {
 @rwreps = sort { $a cmp $b } @rwreps;
 @reps = sort { $a->{'rep'} cmp $b->{'rep'} } @reps;
 local @inputs = ( $input_name."_rwreps_opts", $input_name."_rwreps_vals",
-		  $input_name."_rwreps_add", $input_name."_rwreps_remove",
-		  $input_name."_roreps_opts", $input_name."_roreps_vals",
-		  $input_name."_roreps_add", $input_name."_roreps_remove", );
+		  $input_name."_rwreps_add", $input_name."_rwreps_remove" );
 local $hasuser = $suser || $new && $defs{'git'};
 local $dis = $hasuser ? 0 : 1;
 local $jsenable = &js_disable_inputs([ ], \@inputs, "onClick");
