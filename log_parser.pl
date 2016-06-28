@@ -1,5 +1,7 @@
 # log_parser.pl
 # Functions for parsing this module's logs
+use strict;
+use warnings;
 
 do 'virtualmin-git-lib.pl';
 
@@ -7,7 +9,7 @@ do 'virtualmin-git-lib.pl';
 # Converts logged information from this module into human-readable form
 sub parse_webmin_log
 {
-local ($user, $script, $action, $type, $object, $p) = @_;
+my ($user, $script, $action, $type, $object, $p) = @_;
 if ($type eq "repo") {
 	return &text('log_'.$action.'_repo',
 		     "<tt>".&html_escape($object)."</tt>",

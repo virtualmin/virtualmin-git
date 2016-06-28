@@ -1,8 +1,13 @@
 #!/usr/local/bin/perl
 # Show all Git repositories for this user
+use strict;
+use warnings;
+our (%access, %text, %in);
+our $module_name;
 
 require './virtualmin-git-lib.pl';
 &ReadParse();
+my $showd;
 if ($in{'show'}) {
 	$showd = &virtual_server::get_domain_by("dom", $in{'show'});
 	$showd || &error($text{'index_eshow'});
@@ -11,15 +16,16 @@ if ($in{'show'}) {
 		 $text{'index_title'}, "", undef, 1, 1);
 
 # Check if Git is installed
-$err = &git_check();
+my $err = &git_check();
 if ($err) {
 	&ui_print_endpage($err);
 	}
 
 # Check if plugin is enabled
+no warnings "once";
 if (&indexof($module_name, @virtual_server::plugins) < 0) {
 	if (&virtual_server::can_edit_templates()) {
-		$cgi = $virtual_server::module_info{'version'} >= 3.47 ?
+		my $cgi = $virtual_server::module_info{'version'} >= 3.47 ?
 			"edit_newfeatures.cgi" : "edit_newplugins.cgi";
 		&ui_print_endpage(&text('index_eplugin',
 			"../virtual-server/$cgi"));
@@ -28,14 +34,16 @@ if (&indexof($module_name, @virtual_server::plugins) < 0) {
 		&ui_print_endpage($text{'index_eplugin2'});
 		}
 	}
+use warnings "once";
 
 # Show repositories for Virtualmin domains visible to the current user
-foreach $d ($in{'show'} ? ( $showd ) : &virtual_server::list_domains()) {
+my ($domcount, $accesscount);
+my (@reps, @mydoms);
+foreach my $d ($in{'show'} ? ( $showd ) : &virtual_server::list_domains()) {
 	$domcount++;
 	next if (!&can_edit_domain($d));
 	$accesscount++;
 	next if (!$d->{$module_name});
-	$svncount++;
 	push(@reps, &list_reps($d));
 	push(@mydoms, $d);
 	}
@@ -46,13 +54,13 @@ if (!@mydoms) {
 	}
 
 # Build table of repositories
-@table = ( );
-foreach $r (@reps) {
-	$dom = $r->{'dom'}->{'dom'};
-	$proto = $r->{'dom'}->{'ssl'} ? "https" : "http";
-	$url = "$proto://$r->{'dom'}->{'dom'}/git/gitweb.cgi?p=".
+my @table;
+foreach my $r (@reps) {
+	my $dom = $r->{'dom'}->{'dom'};
+	my $proto = $r->{'dom'}->{'ssl'} ? "https" : "http";
+	my $url = "$proto://$r->{'dom'}->{'dom'}/git/gitweb.cgi?p=".
                &urlize("$r->{'rep'}.git");
-	@actions = (
+	my @actions = (
 		&ui_submit($text{'delete'},
 			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
 		&ui_submit($text{'index_browse'},
@@ -115,9 +123,9 @@ else {
 			[ map { [ $_->{'id'}, $_->{'dom'} ] } @mydoms ]));
 
 	# Users to grant
-	@unames = ( );
+	my @unames;
 	if ($showd) {
-		foreach $u (&virtual_server::list_domain_users(
+		foreach my $u (&virtual_server::list_domain_users(
 				$showd, 0, 1, 1, 1)) {
 			push(@unames, &virtual_server::remove_userdom(
 					$u->{'user'}, $showd));

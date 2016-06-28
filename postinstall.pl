@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+our %gconfig;
 
 do 'virtualmin-git-lib.pl';
 

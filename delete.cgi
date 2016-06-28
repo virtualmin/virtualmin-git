@@ -1,19 +1,22 @@
 #!/usr/local/bin/perl
 # Delete one Git repository
+use strict;
+use warnings;
+our (%text, %in);
 
 require './virtualmin-git-lib.pl';
 &ReadParse();
 
 # Get the domain and repository
-($repdom) = grep { $_ ne "confirm" && $_ ne "show" } (keys %in);
-($repname, $id) = split(/\@/, $repdom);
-$dom = &virtual_server::get_domain($id);
+my ($repdom) = grep { $_ ne "confirm" && $_ ne "show" } (keys %in);
+my ($repname, $id) = split(/\@/, $repdom);
+my $dom = &virtual_server::get_domain($id);
 &can_edit_domain($dom) || &error($text{'add_edom'});
-@reps = &list_reps($dom);
-($rep) = grep { $_->{'rep'} eq $repname } @reps;
+my @reps = &list_reps($dom);
+my ($rep) = grep { $_->{'rep'} eq $repname } @reps;
 $rep || &error($text{'delete_erep'});
 
-$button = $in{$repdom};
+my $button = $in{$repdom};
 if ($button eq &entities_to_ascii($text{'delete'})) {
 	# Deleting repo
 	if ($in{'confirm'}) {
@@ -29,7 +32,7 @@ if ($button eq &entities_to_ascii($text{'delete'})) {
 				 $text{'delete_title'}, "");
 
 		print "<center>\n";
-		$size = &disk_usage_kb($rep->{'dir'});
+		my $size = &disk_usage_kb($rep->{'dir'});
 		print &ui_form_start("delete.cgi");
 		print &ui_hidden($repdom, $in{$repdom});
 		print &ui_hidden("show", $in{'show'});
@@ -44,7 +47,7 @@ if ($button eq &entities_to_ascii($text{'delete'})) {
 	}
 elsif ($button eq &entities_to_ascii($text{'index_browse'})) {
 	# Redirect to gitweb
-	$proto = $dom->{'ssl'} ? "https" : "http";
+	my $proto = $dom->{'ssl'} ? "https" : "http";
 	&redirect("$proto://$dom->{'dom'}/git/gitweb.cgi?p=".
 		  &urlize("$rep->{'rep'}.git"));
 	}

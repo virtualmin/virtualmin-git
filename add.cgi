@@ -1,5 +1,9 @@
 #!/usr/local/bin/perl
 # Create one Git repository
+use strict;
+use warnings;
+our (%access, %text, %in);
+our $module_name;
 
 require './virtualmin-git-lib.pl';
 &ReadParse();
@@ -7,12 +11,13 @@ require './virtualmin-git-lib.pl';
 # Validate inputs
 &error_setup($text{'add_err'});
 $in{'rep'} =~ /^[a-z0-9\.\-\_]+$/i || &error($text{'add_erep'});
-$dom = &virtual_server::get_domain($in{'dom'});
+my $dom = &virtual_server::get_domain($in{'dom'});
 &can_edit_domain($dom) || &error($text{'add_edom'});
 
 # Check limit on repositories
+my @reps;
 if ($access{'max'}) {
-	foreach $d (&virtual_server::list_domains()) {
+	foreach my $d (&virtual_server::list_domains()) {
 		next if (!$d->{$module_name});
 		next if (!&can_edit_domain($d));
 		push(@reps, &list_reps($d));
@@ -21,22 +26,23 @@ if ($access{'max'}) {
 	}
 
 # Run the create command
-$rep = { 'rep' => $in{'rep'} };
-$err = &create_rep($dom, $rep, $in{'desc'}, $in{'anon'});
+my $rep = { 'rep' => $in{'rep'} };
+my $err = &create_rep($dom, $rep, $in{'desc'}, $in{'anon'});
 &error("<pre>$err</pre>") if ($err);
 
 # Grant selected users
-@grants = split(/\r?\n/, $in{'users'});
-%already = map { $_->{'user'}, $_ } &list_users($dom);
-@domusers = &virtual_server::list_domain_users($dom, 0, 1, 1, 1);
+my @grants = split(/\r?\n/, $in{'users'});
+my %already = map { $_->{'user'}, $_ } &list_users($dom);
+my @domusers = &virtual_server::list_domain_users($dom, 0, 1, 1, 1);
 
-foreach $uname (@grants) {
+my @repousers;
+foreach my $uname (@grants) {
         if (!$already{$uname}) {
 		# Need to create the user
-		($domuser) = grep { &virtual_server::remove_userdom(
+		my ($domuser) = grep { &virtual_server::remove_userdom(
                                       $_->{'user'}, $dom) eq $uname } @domusers;
                 next if (!$domuser);
-                local $newuser = { 'user' => $uname,
+                my $newuser = { 'user' => $uname,
                                    'enabled' => 1 };
                 &set_user_password($newuser, $domuser, $dom);
                 &virtual_server::write_as_domain_user($dom,

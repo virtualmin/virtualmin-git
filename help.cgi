@@ -1,17 +1,20 @@
 #!/usr/local/bin/perl
 # Show commands for using some repository
+use strict;
+use warnings;
+our (%text, %in);
 
 require './virtualmin-git-lib.pl';
 &ReadParse();
 
 # Get the domain and repository
-$dom = &virtual_server::get_domain($in{'dom'});
+my $dom = &virtual_server::get_domain($in{'dom'});
 &can_edit_domain($dom) || &error($text{'add_edom'});
-@reps = &list_reps($dom);
-($rep) = grep { $_->{'rep'} eq $in{'rep'} } @reps;
+my @reps = &list_reps($dom);
+my ($rep) = grep { $_->{'rep'} eq $in{'rep'} } @reps;
 $rep || &error($text{'delete_erep'});
-@users = &list_rep_users($dom, $rep);
-$user = @users ? $users[0]->{'user'} : "\$username";
+my @users = &list_rep_users($dom, $rep);
+my $user = @users ? $users[0]->{'user'} : "\$username";
 
 &ui_print_header(&virtual_server::domain_in($dom), $text{'help_title'}, "");
 
