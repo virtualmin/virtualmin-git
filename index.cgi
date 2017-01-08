@@ -60,17 +60,16 @@ foreach my $r (@reps) {
 	my $proto = $r->{'dom'}->{'ssl'} ? "https" : "http";
 	my $url = "$proto://$r->{'dom'}->{'dom'}/git/gitweb.cgi?p=".
                &urlize("$r->{'rep'}.git");
+	my $ur = &urlize($r->{'rep'}."\@".$r->{'dom'}->{'id'});
 	my @actions = (
-		&ui_submit($text{'delete'},
-			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
-		&ui_submit($text{'index_browse'},
-			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}, 0,
-			   "onClick='window.open(\"$url\"); return false;'"),
-		&ui_submit($text{'index_help'},
-			   $r->{'rep'}."\@".$r->{'dom'}->{'id'}),
+		&ui_link("delete.cgi?show=$in{'show'}&rep=".$ur,
+			 $text{'delete'}),
+		&ui_link($url, $text{'index_browse'}, undef, "target=_blank"),
+		&ui_link("help.cgi?show=$in{'show'}&dom=$r->{'dom'}->{'id'}&".
+			 "rep=$r->{'rep'}", $text{'index_help'}),
 		);
 	push(@table, [ $r->{'rep'}, $showd ? ( ) : ( $dom ),
-		       $r->{'desc'}, $r->{'dir'}, join(" ", @actions) ]);
+		       $r->{'desc'}, $r->{'dir'}, &ui_links_row(\@actions) ]);
 	}
 
 # Show table of repos
