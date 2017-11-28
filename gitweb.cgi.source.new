@@ -50,7 +50,7 @@ my $snapshots_url = "http://git.xmms.se/snapshot.cgi";
 my $git_base_url = "git://git.xmms.se/xmms2";
 
 # syntax highlighting
-my %highlight = ( 
+my %highlight = (
 	"SConstruct" => "py",
 	"Program" => "py",
 	"Library" => "py",
@@ -406,7 +406,7 @@ EOF
 		}
 		$cgi->param("a", "search");
 		$cgi->param("h", $search_hash);
-		print $cgi->startform(-method => "get", -action => $my_uri) .
+		print $cgi->start_form(-method => "get", -action => $my_uri) .
 		      "<div class=\"search\">\n" .
 		      $cgi->hidden(-name => "p") . "\n" .
 		      $cgi->hidden(-name => "a") . "\n" .
@@ -436,7 +436,7 @@ sub git_footer_html {
 
 sub die_error {
 	my $status = shift || "403 Forbidden";
-	my $error = shift || "Malformed query, file missing or permission denied"; 
+	my $error = shift || "Malformed query, file missing or permission denied";
 
 	git_header_html($status);
 	print "<div class=\"page_body\">\n" .
@@ -1190,7 +1190,7 @@ sub git_summary {
 	print "</table\n>";
 
 	my $taglist = git_read_refs("refs/tags");
-	if (defined @$taglist) {
+	if (@$taglist) {
 		print "<div>\n" .
 		      $cgi->a({-href => "$my_uri?" . esc_param("p=$project;a=tags"), -class => "title"}, "tags") .
 		      "</div>\n";
@@ -1243,7 +1243,7 @@ sub git_summary {
 	}
 
 	my $headlist = git_read_refs("refs/heads");
-	if (defined @$headlist) {
+	if (@$headlist) {
 		print "<div>\n" .
 		      $cgi->a({-href => "$my_uri?" . esc_param("p=$project;a=heads"), -class => "title"}, "heads") .
 		      "</div>\n";
@@ -1321,7 +1321,7 @@ sub git_tags {
 	      "</div>\n";
 	print "<table cellspacing=\"0\">\n";
 	my $alternate = 0;
-	if (defined @$taglist) {
+	if (@$taglist) {
 		foreach my $entry (@$taglist) {
 			my %tag = %$entry;
 			my $comment_lines = $tag{'comment'};
@@ -1373,7 +1373,7 @@ sub git_heads {
 	      "</div>\n";
 	print "<table cellspacing=\"0\">\n";
 	my $alternate = 0;
-	if (defined @$taglist) {
+	if (@$taglist) {
 		foreach my $entry (@$taglist) {
 			my %tag = %$entry;
 			if ($alternate) {
