@@ -452,7 +452,7 @@ my %allowed_options = (
 );
 
 our @extra_options = $cgi->param('opt');
-if (defined @extra_options) {
+if (@extra_options) {
 	foreach my $opt (@extra_options) {
 		if (not exists $allowed_options{$opt}) {
 			die_error(400, "Invalid option parameter");

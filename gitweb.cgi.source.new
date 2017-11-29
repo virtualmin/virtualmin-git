@@ -1190,7 +1190,7 @@ sub git_summary {
 	print "</table\n>";
 
 	my $taglist = git_read_refs("refs/tags");
-	if (defined @$taglist) {
+	if (@$taglist) {
 		print "<div>\n" .
 		      $cgi->a({-href => "$my_uri?" . esc_param("p=$project;a=tags"), -class => "title"}, "tags") .
 		      "</div>\n";
@@ -1243,7 +1243,7 @@ sub git_summary {
 	}
 
 	my $headlist = git_read_refs("refs/heads");
-	if (defined @$headlist) {
+	if (@$headlist) {
 		print "<div>\n" .
 		      $cgi->a({-href => "$my_uri?" . esc_param("p=$project;a=heads"), -class => "title"}, "heads") .
 		      "</div>\n";
@@ -1321,7 +1321,7 @@ sub git_tags {
 	      "</div>\n";
 	print "<table cellspacing=\"0\">\n";
 	my $alternate = 0;
-	if (defined @$taglist) {
+	if (@$taglist) {
 		foreach my $entry (@$taglist) {
 			my %tag = %$entry;
 			my $comment_lines = $tag{'comment'};
@@ -1373,7 +1373,7 @@ sub git_heads {
 	      "</div>\n";
 	print "<table cellspacing=\"0\">\n";
 	my $alternate = 0;
-	if (defined @$taglist) {
+	if (@$taglist) {
 		foreach my $entry (@$taglist) {
 			my %tag = %$entry;
 			if ($alternate) {
