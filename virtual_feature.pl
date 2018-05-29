@@ -179,6 +179,15 @@ foreach my $src (&find_gitweb_data()) {
 	$gitfile = "$phd/git/$gitfile";
 	&virtual_server::copy_source_dest_as_domain_user($d, $src, $gitfile);
 	}
+my $gitconf = "$phd/git/gitweb_config.perl";
+if (!-r $gitconf) {
+	my $lref = &virtual_server::read_file_lines_as_domain_user($d, $gitconf);
+	push(@$lref, '$stylesheet = "gitweb.css";');
+	push(@$lref, '$logo = "git-logo.png";');
+	push(@$lref, '$favicon = "git-favicon.png";');
+	push(@$lref, '$javascript = "gitweb.js";');
+	&virtual_server::flush_file_lines_as_domain_user($d, $gitconf);
+	}
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 
 # Set default limit from template
@@ -657,7 +666,7 @@ if ($un ne $oun && $suser) {
 		}
 	}
 
-if ($user->{'passmode'} == 3) {
+if ($user->{'passmode'} && $user->{'passmode'} == 3) {
 	# Password was changed
 	$suser->{'pass'} = $user->{'pass_crypt'} ||
 	    &htaccess_htpasswd::encrypt_password($user->{'plainpass'});
