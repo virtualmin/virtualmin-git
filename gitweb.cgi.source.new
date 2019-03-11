@@ -406,7 +406,7 @@ EOF
 		}
 		$cgi->param("a", "search");
 		$cgi->param("h", $search_hash);
-		print $cgi->startform(-method => "get", -action => $my_uri) .
+		print $cgi->start_form(-method => "get", -action => $my_uri) .
 		      "<div class=\"search\">\n" .
 		      $cgi->hidden(-name => "p") . "\n" .
 		      $cgi->hidden(-name => "a") . "\n" .

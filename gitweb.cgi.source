@@ -2619,7 +2619,7 @@ EOF
 		if ($use_pathinfo) {
 			$action .= "/".esc_url($project);
 		}
-		print $cgi->startform(-method => "get", -action => $action) .
+		print $cgi->start_form(-method => "get", -action => $action) .
 		      "<div class=\"search\">\n" .
 		      (!$use_pathinfo &&
 		      $cgi->input({-name=>"p", -value=>$project, -type=>"hidden"}) . "\n") .
