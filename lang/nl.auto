@@ -1,0 +1,5 @@
+feat_label2=Git-opslagplaatsen
+feat_norepos=.. er zijn nog geen Git-opslagplaatsen gemaakt
+feat_module=Virtualmin Git Repositories (voor het beheren van repositories)
+index_anonro=Anonieme leestoegang toestaan?
+help_anon=Anoniem deze repository bekijken
