@@ -657,7 +657,7 @@ if ($un ne $oun && $suser) {
 	$suser->{'user'} = $un;
 	&htaccess_htpasswd::modify_user($suser);
 	foreach my $r (&list_reps($dom)) {
-		my @rusers = &list_rep_users($dom, $r->{'rep'});
+		my @rusers = &list_rep_users($dom, $r);
 		my ($ruser) = grep { $_->{'user'} eq $oun } @rusers;
 		if ($ruser) {
 			$ruser->{'user'} = $un;
@@ -696,7 +696,7 @@ if ($suser) {
 
 # Remove from all repositories
 foreach my $r (&list_reps($dom)) {
-        my @rusers = &list_rep_users($dom, $r->{'rep'});
+        my @rusers = &list_rep_users($dom, $r);
         my ($ruser) = grep { $_->{'user'} eq $un } @rusers;
         my @newrusers = grep { $_ ne $ruser } @rusers;
         if (@newrusers != @rusers) {
