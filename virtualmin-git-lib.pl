@@ -67,7 +67,7 @@ $git || return "Git command $config{'git'} was not found!";
 # Make the dir and setup a repo in it
 $rep->{'dir'} = &virtual_server::public_html_dir($d)."/git/$rep->{'rep'}.git";
 if (!-d $rep->{'dir'}) {
-	&virtual_server::make_dir_as_domain_user($d, $rep->{'dir'});
+	&virtual_server::make_dir_as_domain_user($d, $rep->{'dir'}, undef, 1);
 	}
 my $cmd = "cd ".quotemeta($rep->{'dir'})." && $git --bare init";
 my ($out, $ex) = &virtual_server::run_as_domain_user($d, $cmd);
@@ -125,25 +125,14 @@ sub find_gitweb
 {
 my $ver = &get_git_version();
 my $localcgi = "gitweb.cgi.source";
-if ($ver >= 1.7) {
+if (&compare_version_numbers($ver, 1.7) >= 0) {
 	$localcgi .= ".new";
 	}
 foreach my $p ("/var/www/git/gitweb.cgi",	# CentOS
 	       "/usr/lib/cgi-bin/gitweb.cgi",	# Ubuntu
 	       "$module_root_directory/$localcgi") {
 	if (-r $p) {
-		# Exists .. but does it use a stupid static/ path?
-		my $lref = &read_file_lines($p, 1);
-		my $static = 0;
-		foreach my $l (@$lref) {
-			if ($l =~ /\@stylesheets\s*=.*static\//) {
-				$static = 1;
-				}
-			}
-		&unflush_file_lines($p);
-		if (!$static) {
-			return $p;
-			}
+		return $p;
 		}
 	}
 return undef;
