@@ -1,0 +1,2 @@
+git=Chemin complet de la commande git,0
+passfile=Fichier de mot de passe sous le répertoire personnel,3,par défaut (<tt>etc/git.basic.passwd</tt>)
